@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Enter the PiAware site stats URL below using the full site URL format, eg
+# https://flightaware.com/adsb/stats/user/username#stats-nnnnnn
+siteurl=
+
+# Extract the site number from the end of the URL
+setSiteID() {
+  siteid=$(echo $siteurl | sed -e 's/^.*#stats-//')
+}
+
+# Download the URL, locate the stats JSON data, strip the HTML before and after it
+getJSONdata() {
+  jsondata=$(curl -s $siteurl)
+  jsondata=$(echo $jsondata | grep "var data")
+  jsondata=$(echo $jsondata | sed -e 's/^.*var\sdata\s=\s//')
+  jsondata=$(echo $jsondata | sed -e 's/;.*$//')
+}
+
+# Extract the Aircraft Reported totals and delimit with spaces
+filterAircraftReported() {
+  acrep=$(echo $jsondata | jq --arg jqsiteid $siteid '.sites[$jqsiteid].daily_stats[].idents' | tr "\n" " ")
+}
+
+# Extract the Positions Reported totals and delimit with spaces
+filterPositionsReported() {
+  posrep=$(echo $jsondata | jq --arg jqsiteid $siteid '.sites[$jqsiteid].daily_stats[].positions' | tr "\n" " ")
+}
+
+setSiteID
+echo "Getting totals for Site $siteid"
+getJSONdata
+filterAircraftReported
+filterPositionsReported
+echo "Aircraft reported: $acrep"
+echo "Positions reported: $posrep"
