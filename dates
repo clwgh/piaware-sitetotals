@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Enter the PiAware site stats URL below using the full site URL format, eg
+# https://flightaware.com/adsb/stats/user/username#stats-nnnnnn
+
+siteurl=https://flightaware.com/adsb/stats/user/username#stats-nnnnnn
+
+# Set the preferred delimeter - space, comma, semicolon, etc
+# Enclose the character in double quotes, like this ";"
+
+delim=" "
+
+# Optionally write results to a text file. Uncomment an "output" line to
+# write output to screen, file, or both. Provide a filename. File will
+# be created if  it doesn't exist, and will append if file already exists.
+
+output=screen
+#output=file
+#output=both
+
+outfile="ACStats.txt"
+
+# Optionally record dates along with the aircraft and position totals
+# Note that dates are in epoch format, so they will need some conversion
+# to be human-readable
+
+#dates=yes
+dates=no
+
+
+# Extract the site number from the end of the URL
+setSiteID() {
+  siteid=$(echo $siteurl | sed -e 's/^.*#stats-//')
+}
+
+# Download the URL, locate the stats JSON data, strip the HTML before and after it
+getJSONdata() {
+  jsondata=$(curl -s $siteurl)
+  jsondata=$(echo $jsondata | grep "var data")
+  jsondata=$(echo $jsondata | sed -e 's/^.*var\sdata\s=\s//')
+  jsondata=$(echo $jsondata | sed -e 's/;.*$//')
+}
+
+# Extract the dates for each total and delimit with the character
+# specified above
+filterDateReported() {
+  daterep=$(echo $jsondata | jq --arg jqsiteid $siteid '.sites[$jqsiteid].daily_stats[].date' | tr "\n"  $delim)
+}
+
+
+# Extract the Aircraft Reported totals and delimit with the character
+# specified above
+filterAircraftReported() {
+  acrep=$(echo $jsondata | jq --arg jqsiteid $siteid '.sites[$jqsiteid].daily_stats[].idents' | tr "\n"  $delim)
+}
+
+# Extract the Positions Reported totals and delimit with the character
+# specified above
+filterPositionsReported() {
+  posrep=$(echo $jsondata | jq --arg jqsiteid $siteid '.sites[$jqsiteid].daily_stats[].positions'  | tr "\n" $delim)
+}
+
+setSiteID
+echo "Getting totals for Site $siteid"
+getJSONdata
+filterDateReported
+filterAircraftReported
+filterPositionsReported
+
+if [ $output == "screen" ];
+   then
+      if [ $dates == "yes" ];
+         then
+            echo "Date: $daterep"
+            echo "Aircraft reported: $acrep"
+            echo "Positions reported: $posrep"
+         else
+            echo "Aircraft reported: $acrep"
+            echo "Positions reported: $posrep"
+     fi
+elif [ $output == "file" ];
+      then
+         if [ $dates = "yes" ];
+         then
+            echo "Writing data to "$outfile
+            echo "Date: $daterep"  >> $outfile
+            echo "Aircraft reported: $acrep" >> $outfile
+            echo "Positions reported: $posrep" >> $outfile
+         else
+            echo "Writing data to "$outfile
+            echo "Aircraft reported: $acrep" >> $outfile
+            echo "Positions reported: $posrep" >> $outfile
+      fi
+elif [ $output == "both" ];
+      then
+      if [ $dates == "yes" ];
+         then
+            echo "gathering data"
+            echo "Date: $daterep"  | tee -a $outfile
+            echo "Aircraft reported: $acrep" | tee -a $outfile
+            echo "Positions reported: $posrep" | tee -a $outfile
+            echo " "
+            echo " "
+            echo "Data written to $outfile"
+      else
+            echo "gathering data"
+            echo "Aircraft reported: $acrep" | tee -a $outfile
+            echo "Positions reported: $posrep" | tee -a $outfile
+            echo " "
+            echo " "
+            echo "Data written to $outfile"
+      fi
+
+else
+      echo "Error: Please edit script and change the value of the output varible to  either screen, file, or both. Current setting is - $output"
+fi
+
+echo " "
+echo " "
+echo "Done"
