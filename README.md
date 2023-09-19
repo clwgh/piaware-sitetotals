@@ -1,9 +1,9 @@
 # piaware-sitetotals
 Extract Aircraft Reported and Positions Reported totals from a FlightAware stats URL
 
-Bash script which takes a FlightAware stats URL in the form `https://flightaware.com/adsb/stats/user/username#stats-nnnnnn` and extracts the **Totals** for the **Aircraft Reported** and **Positions Reported** from the rolling 31-day stats tables shown.
+Bash script which takes a FlightAware stats URL in the form `https://uk.flightaware.com/adsb/stats/user/username#stats-nnnnnn` and extracts the **Totals** for the **Aircraft Reported** and **Positions Reported** from the rolling 31-day stats tables shown.
 
-Enter the site stats URL in the correct format where indicated in the script
+Enter the site stats URL in the correct format where indicated in the script. Note that the full site URL should include any country-specific subdomain, eg `uk.flightaware.com`.
 
 These numbers can be used for further scripting.
 
