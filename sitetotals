@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Enter the PiAware site stats URL below using the full site URL format, eg
-# https://flightaware.com/adsb/stats/user/username#stats-nnnnnn
+# https://uk.flightaware.com/adsb/stats/user/username#stats-nnnnnn
 siteurl=
 
 # Extract the site number from the end of the URL
